@@ -765,7 +765,7 @@ Edit.prototype.editors = {
 		}
 
 
-		function chooseItem(){
+		function chooseItem() {
 			hideList();
 			// todo: does this need to send the value of the input if it isn't an item?
 			// console.warn('choose itemb', initialValue);
@@ -773,7 +773,34 @@ Edit.prototype.editors = {
 			// console.warn('choose itema', input.value);
 
 			// TODO: This is bad refactor later 
-			if (editorParams.allowEmpty === true) {
+			// TODO: handle 'freetext'
+
+			if (editorParams.allowEmpty === true || input.value.trim() !== '') { 
+				if(initialValue !== input.value) {
+					var validItem = true;
+
+					initialValue = input.value;
+	
+					if (currentItem && currentItem.value) {
+						if (input.value.toLowerCase() !== currentItem.value.toLowerCase()) {
+							currentItem = {};
+							validItem = false;
+						}
+					} else {
+						validItem = false;
+					}
+	
+					if (editorParams.freetext === true || validItem) {
+						success(input.value);
+					} else {
+						cancel();
+					}
+				} else {
+					cancel();
+				}
+			}
+
+			/*if (editorParams.allowEmpty === true) {
 				if(initialValue !== input.value) {
 					initialValue = input.value;
 	
@@ -788,7 +815,7 @@ Edit.prototype.editors = {
 					cancel();
 				}
 			} else {
-				if (input.value.trim() !== '') { 
+				if (editorParams.allowEmpty === true || input.value.trim() !== '') { 
 					if(initialValue !== input.value) {
 						initialValue = input.value;
 		
@@ -803,7 +830,7 @@ Edit.prototype.editors = {
 						cancel();
 					}
 				}
-			}
+			}*/
 
 			/*if (input.value.trim() === '') {
 				if(initialValue !== input.value) {

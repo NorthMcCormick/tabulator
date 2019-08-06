@@ -11451,37 +11451,60 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 				// console.warn('choose itema', input.value);
 
 				// TODO: This is bad refactor later 
-				if (editorParams.allowEmpty === true) {
+				// TODO: handle 'freetext'
+
+				if (editorParams.allowEmpty === true || input.value.trim() !== '') {
 					if (initialValue !== input.value) {
+						var validItem = true;
+
 						initialValue = input.value;
 
 						if (currentItem && currentItem.value) {
 							if (input.value.toLowerCase() !== currentItem.value.toLowerCase()) {
 								currentItem = {};
+								validItem = false;
 							}
+						} else {
+							validItem = false;
 						}
 
-						success(input.value);
-					} else {
-						cancel();
-					}
-				} else {
-					if (input.value.trim() !== '') {
-						if (initialValue !== input.value) {
-							initialValue = input.value;
-
-							if (currentItem && currentItem.value) {
-								if (input.value.toLowerCase() !== currentItem.value.toLowerCase()) {
-									currentItem = {};
-								}
-							}
-
+						if (editorParams.freetext === true || validItem) {
 							success(input.value);
 						} else {
 							cancel();
 						}
+					} else {
+						cancel();
 					}
 				}
+
+				/*if (editorParams.allowEmpty === true) {
+    	if(initialValue !== input.value) {
+    		initialValue = input.value;
+    					if (currentItem && currentItem.value) {
+    			if (input.value.toLowerCase() !== currentItem.value.toLowerCase()) {
+    				currentItem = {};
+    			}
+    		}
+    					success(input.value);
+    	} else {
+    		cancel();
+    	}
+    } else {
+    	if (editorParams.allowEmpty === true || input.value.trim() !== '') { 
+    		if(initialValue !== input.value) {
+    			initialValue = input.value;
+    							if (currentItem && currentItem.value) {
+    				if (input.value.toLowerCase() !== currentItem.value.toLowerCase()) {
+    					currentItem = {};
+    				}
+    			}
+    							success(input.value);
+    		} else {
+    			cancel();
+    		}
+    	}
+    }*/
 
 				/*if (input.value.trim() === '') {
     	if(initialValue !== input.value) {
