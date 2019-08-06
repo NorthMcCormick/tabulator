@@ -549,6 +549,467 @@ Edit.prototype.editors = {
 	},
 
 	//select
+	selectAutocomplete: function selectAutocomplete(cell, onRendered, success, cancel, editorParams) {
+		var self = this,
+		    cellEl = cell.getElement(),
+		    initialValue = cell.getValue(),
+		    input = document.createElement("input"),
+		    listEl = document.createElement("div"),
+		    dataItems = [],
+		    displayItems = [],
+		    currentItem = {},
+		    blurable = true;
+
+		this.table.rowManager.element.addEventListener("scroll", cancelItem);
+
+		console.warn('Self auto complete: )');
+
+		if (Array.isArray(editorParams) || !Array.isArray(editorParams) && (typeof editorParams === "undefined" ? "undefined" : _typeof(editorParams)) === "object" && !editorParams.values) {
+			// console.warn("DEPRECATION WANRING - values for the select editor must now be passed into the values property of the editorParams object, not as the editorParams object");
+			editorParams = { values: editorParams };
+		}
+
+		function getUniqueColumnValues() {
+			var output = {},
+			    column = cell.getColumn()._getSelf(),
+			    data = self.table.getData();
+
+			data.forEach(function (row) {
+				var val = column.getFieldValue(row);
+
+				if (val !== null && typeof val !== "undefined" && val !== "") {
+					output[val] = true;
+				}
+			});
+
+			if (editorParams.sortValuesList) {
+				if (editorParams.sortValuesList == "asc") {
+					output = Object.keys(output).sort();
+				} else {
+					output = Object.keys(output).sort().reverse();
+				}
+			} else {
+				output = Object.keys(output);
+			}
+
+			return output;
+		}
+
+		function parseItems(inputValues, currentValue) {
+			// console.warn('select2 parseitem', inputValues, currentValue);
+			var dataList = [];
+			var displayList = [];
+
+			function processComplexListItem(item) {
+				var item = {
+					label: editorParams.listItemFormatter ? editorParams.listItemFormatter(item.value, item.label) : item.label,
+					value: item.value,
+					element: false
+				};
+
+				if (item.value === currentValue || !isNaN(parseFloat(item.value)) && !isNaN(parseFloat(item.value)) && parseFloat(item.value) === parseFloat(currentValue)) {
+					setCurrentItem(item);
+				}
+
+				dataList.push(item);
+				displayList.push(item);
+
+				return item;
+			}
+
+			if (typeof inputValues == "function") {
+				inputValues = inputValues(cell);
+			}
+
+			if (Array.isArray(inputValues)) {
+				inputValues.forEach(function (value) {
+					var item;
+
+					if ((typeof value === "undefined" ? "undefined" : _typeof(value)) === "object") {
+
+						if (value.options) {
+							item = {
+								label: value.label,
+								group: true,
+								element: false
+							};
+
+							displayList.push(item);
+
+							value.options.forEach(function (item) {
+								processComplexListItem(item);
+							});
+						} else {
+							processComplexListItem(value);
+						}
+					} else {
+
+						item = {
+							label: editorParams.listItemFormatter ? editorParams.listItemFormatter(value, value) : value,
+							value: value,
+							element: false
+						};
+
+						if (item.value === currentValue || !isNaN(parseFloat(item.value)) && !isNaN(parseFloat(item.value)) && parseFloat(item.value) === parseFloat(currentValue)) {
+							setCurrentItem(item);
+						}
+
+						dataList.push(item);
+						displayList.push(item);
+					}
+				});
+			} else {
+				for (var key in inputValues) {
+					var item = {
+						label: editorParams.listItemFormatter ? editorParams.listItemFormatter(key, inputValues[key]) : inputValues[key],
+						value: key,
+						element: false
+					};
+
+					if (item.value === currentValue || !isNaN(parseFloat(item.value)) && !isNaN(parseFloat(item.value)) && parseFloat(item.value) === parseFloat(currentValue)) {
+						setCurrentItem(item);
+					}
+
+					dataList.push(item);
+					displayList.push(item);
+				}
+			}
+
+			dataItems = dataList;
+			displayItems = displayList;
+
+			fillList();
+		}
+
+		function fillList() {
+			console.warn('Filling list');
+			while (listEl.firstChild) {
+				listEl.removeChild(listEl.firstChild);
+			}displayItems.forEach(function (item) {
+				var showItem = false;
+				console.warn('val', item);
+
+				// Handle the 'search' filter
+				if (item.group) {
+					console.warn('divider', item);
+					showItem = true;
+				}
+
+				if (!showItem && input.value.trim() === '') {
+					console.warn('No search value, show all');
+
+					showItem = true;
+				}
+
+				if (!showItem && item.value && item.value.toLowerCase().indexOf(input.value.toLowerCase()) > -1) {
+					console.warn('Got an index of');
+					showItem = true;
+				}
+
+				if (showItem) {
+					var el = item.element;
+
+					if (!el) {
+						if (item.group) {
+							el = document.createElement("div");
+							el.classList.add("tabulator-edit-select-list-group");
+							el.tabIndex = 0;
+							el.innerHTML = item.label === "" ? "&nbsp;" : item.label;
+						} else {
+							el = document.createElement("div");
+							el.classList.add("tabulator-edit-select-list-item");
+							el.tabIndex = 0;
+							el.innerHTML = item.label === "" ? "&nbsp;" : item.label;
+
+							el.addEventListener("click", function () {
+								setCurrentItem(item);
+								chooseItem();
+							});
+
+							if (item === currentItem) {
+								el.classList.add("active");
+							}
+						}
+
+						el.addEventListener("mousedown", function () {
+							blurable = false;
+
+							setTimeout(function () {
+								blurable = true;
+							}, 10);
+						});
+
+						item.element = el;
+					} else {
+						// I haven't been able to see this work 
+					}
+
+					listEl.appendChild(el);
+				}
+			});
+
+			console.warn('Finish');
+		}
+
+		function setCurrentItem(item) {
+			if (currentItem && currentItem.element) {
+				currentItem.element.classList.remove("active");
+			}
+
+			currentItem = item;
+			input.value = item.label === "&nbsp;" ? "" : item.label;
+
+			if (item.element) {
+				item.element.classList.add("active");
+			}
+		}
+
+		function chooseItem() {
+			hideList();
+			// todo: does this need to send the value of the input if it isn't an item?
+			console.warn('choose itemb', initialValue);
+			console.warn('choose itemc', currentItem.value);
+			console.warn('choose itema', input.value);
+
+			// TODO: This is bad refactor later 
+			if (editorParams.allowEmpty === true) {
+				if (initialValue !== input.value) {
+					initialValue = input.value;
+
+					if (currentItem && currentItem.value) {
+						if (input.value.toLowerCase() !== currentItem.value.toLowerCase()) {
+							currentItem = {};
+						}
+					}
+
+					success(input.value);
+				} else {
+					cancel();
+				}
+			} else {
+				if (input.value.trim() !== '') {
+					if (initialValue !== input.value) {
+						initialValue = input.value;
+
+						if (currentItem && currentItem.value) {
+							if (input.value.toLowerCase() !== currentItem.value.toLowerCase()) {
+								currentItem = {};
+							}
+						}
+
+						success(input.value);
+					} else {
+						cancel();
+					}
+				}
+			}
+
+			/*if (input.value.trim() === '') {
+   	if(initialValue !== input.value) {
+   		initialValue = input.value;
+   		currentItem = {};
+   		success(input.value);
+   	} else {
+   		cancel();
+   	}
+   } else {
+   	if (initialValue !== currentItem.value) {
+   		initialValue = currentItem.value;
+   		success(currentItem.value);
+   	} else {
+   		cancel();
+   	}
+   }
+   	if (input.value.trim() === '') {
+   	if(initialValue !== input.value) {
+   		initialValue = input.value;
+   		currentItem = {};
+   		success(input.value);
+   	} else {
+   		cancel();
+   	}
+   } else {
+   	if (initialValue !== currentItem.value) {
+   		initialValue = currentItem.value;
+   		success(currentItem.value);
+   	} else {
+   		cancel();
+   	}
+   }*/
+		}
+
+		function cancelItem() {
+			hideList();
+			cancel();
+		}
+
+		function showList() {
+			if (!listEl.parentNode) {
+
+				if (editorParams.values === true) {
+					parseItems(getUniqueColumnValues(), initialValue);
+				} else {
+					parseItems(editorParams.values || [], initialValue);
+				}
+
+				var offset = Tabulator.prototype.helpers.elOffset(cellEl);
+
+				listEl.style.minWidth = cellEl.offsetWidth + "px";
+
+				listEl.style.top = offset.top + cellEl.offsetHeight + "px";
+				listEl.style.left = offset.left + "px";
+				document.body.appendChild(listEl);
+			}
+		}
+
+		function hideList() {
+			if (listEl.parentNode) {
+				listEl.parentNode.removeChild(listEl);
+			}
+
+			removeScrollListener();
+		}
+
+		function removeScrollListener() {
+			self.table.rowManager.element.removeEventListener("scroll", cancelItem);
+		}
+
+		//style input
+		input.setAttribute("type", "text");
+
+		input.style.padding = "4px";
+		input.style.width = "100%";
+		input.style.boxSizing = "border-box";
+		input.style.cursor = "default";
+		// input.readOnly = (this.currentCell != false);
+		console.warn('field setup', input, this.currentCell, input.readOnly);
+
+		input.value = typeof initialValue !== "undefined" || initialValue === null ? initialValue : "";
+
+		if (editorParams.values === true) {
+			parseItems(getUniqueColumnValues(), initialValue);
+		} else {
+			parseItems(editorParams.values || [], initialValue);
+		}
+
+		//allow key based navigation
+		input.addEventListener("keydown", function (e) {
+			var index;
+
+			switch (e.keyCode) {
+				case 38:
+					//up arrow
+					e.stopImmediatePropagation();
+					e.stopPropagation();
+					e.preventDefault();
+
+					index = dataItems.indexOf(currentItem);
+
+					if (index > 0) {
+						setCurrentItem(dataItems[index - 1]);
+					}
+					break;
+
+				case 40:
+					//down arrow
+					e.stopImmediatePropagation();
+					e.stopPropagation();
+					e.preventDefault();
+
+					index = dataItems.indexOf(currentItem);
+
+					if (index < dataItems.length - 1) {
+						if (index == -1) {
+							setCurrentItem(dataItems[0]);
+						} else {
+							setCurrentItem(dataItems[index + 1]);
+						}
+					}
+					break;
+
+				case 37: //left arrow
+				case 39:
+					//right arrow
+					e.stopImmediatePropagation();
+					e.stopPropagation();
+					e.preventDefault();
+					break;
+
+				case 13:
+					//enter
+					chooseItem();
+					break;
+
+				case 27:
+					//escape
+					cancelItem();
+					break;
+
+				/*default:
+    	e.stopImmediatePropagation();
+    	e.stopPropagation();
+    	
+    	fillList();
+    break;*/
+			}
+		});
+
+		input.addEventListener("keyup", function (e) {
+			switch (e.keyCode) {
+				case 38: //up arrow
+				case 40: //down arrow
+				case 37: //left arrow
+				case 39:
+					//right arrow
+					// case 13: //enter
+					// case 27: //escape
+
+					break;
+
+				default:
+					e.stopImmediatePropagation();
+					e.stopPropagation();
+
+					fillList();
+					break;
+			}
+		});
+
+		input.addEventListener("blur", function (e) {
+			if (blurable) {
+				cancelItem();
+			}
+		});
+
+		input.addEventListener("focus", function (e) {
+			showList();
+			this.select();
+		});
+
+		/*$(input).off("change type search keyup");
+  	setTimeout(function() {
+  	$(input).off("change type search keyup");
+  }, 100);
+  	setTimeout(function() {
+  	$(input).off("change type search keyup");
+  }, 1000);*/
+
+		//style list element
+		listEl = document.createElement("div");
+		listEl.classList.add("tabulator-edit-select-list");
+
+		// TODO: editorParams use the 'allowEmpty'
+
+		onRendered(function () {
+			console.warn('Rendered');
+			input.style.height = "100%";
+			input.focus();
+		});
+
+		return input;
+	},
+
+	//select
 	select: function select(cell, onRendered, success, cancel, editorParams) {
 		var self = this,
 		    cellEl = cell.getElement(),

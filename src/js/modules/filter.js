@@ -268,6 +268,7 @@ Filter.prototype.generateHeaderFilterElement = function(column, initialValue){
 				if (
 					!(
 						column.definition.headerFilter === 'autocomplete' ||
+						column.definition.headerFilter === 'selectAutocomplete' ||
 						column.definition.headerFilter === 'tickCross' ||
 						((column.definition.editor === 'autocomplete' ||
 							column.definition.editor === 'tickCross') &&
