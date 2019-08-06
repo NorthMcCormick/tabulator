@@ -557,7 +557,7 @@ Edit.prototype.editors = {
 
 		this.table.rowManager.element.addEventListener("scroll", cancelItem);
 
-		console.warn('Self auto complete: )');
+		// console.warn('Self auto complete: )');
 
 		if(Array.isArray(editorParams) || (!Array.isArray(editorParams) && typeof editorParams === "object" && !editorParams.values)){
 			// console.warn("DEPRECATION WANRING - values for the select editor must now be passed into the values property of the editorParams object, not as the editorParams object");
@@ -678,27 +678,27 @@ Edit.prototype.editors = {
 		}
 
 		function fillList() {
-			console.warn('Filling list');
+			// console.warn('Filling list');
 			while(listEl.firstChild) listEl.removeChild(listEl.firstChild);
 
 			displayItems.forEach(function(item){	
 				var showItem = false;
-				console.warn('val', item);
+				// console.warn('val', item);
 
 				// Handle the 'search' filter
 				if (item.group) {
-					console.warn('divider', item);
+					// console.warn('divider', item);
 					showItem = true;
 				}
 				
 				if (!showItem && input.value.trim() === '') {
-					console.warn('No search value, show all');
+					// console.warn('No search value, show all');
 
 					showItem = true;
 				}
 
 				if (!showItem && (item.value && item.value.toLowerCase().indexOf(input.value.toLowerCase()) > -1)) {
-					console.warn('Got an index of');
+					// console.warn('Got an index of');
 					showItem = true;
 				}
 
@@ -746,7 +746,7 @@ Edit.prototype.editors = {
 				}
 			});
 
-			console.warn('Finish');
+			// console.warn('Finish');
 		}
 
 
@@ -768,9 +768,9 @@ Edit.prototype.editors = {
 		function chooseItem(){
 			hideList();
 			// todo: does this need to send the value of the input if it isn't an item?
-			console.warn('choose itemb', initialValue);
-			console.warn('choose itemc', currentItem.value);
-			console.warn('choose itema', input.value);
+			// console.warn('choose itemb', initialValue);
+			// console.warn('choose itemc', currentItem.value);
+			// console.warn('choose itema', input.value);
 
 			// TODO: This is bad refactor later 
 			if (editorParams.allowEmpty === true) {
@@ -885,7 +885,7 @@ Edit.prototype.editors = {
 		input.style.boxSizing = "border-box";
 		input.style.cursor = "default";
 		// input.readOnly = (this.currentCell != false);
-		console.warn('field setup', input, this.currentCell, input.readOnly);
+		// console.warn('field setup', input, this.currentCell, input.readOnly);
 
 		input.value = typeof initialValue !== "undefined" || initialValue === null ? initialValue : "";
 
@@ -1001,7 +1001,7 @@ Edit.prototype.editors = {
 		// TODO: editorParams use the 'allowEmpty'
 
 		onRendered(function(){
-			console.warn('Rendered');
+			// console.warn('Rendered');
 			input.style.height = "100%";
 			input.focus();
 		});
