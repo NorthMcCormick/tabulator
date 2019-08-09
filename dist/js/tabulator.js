@@ -6506,6 +6506,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		if (this.modExists("filter", true)) {
 			this.modules.filter.clearHeaderFilter();
 			this.rowManager.filterRefresh();
+
+			/*var headerFilterClearEvent = new Event('tabulator-headerFilters-clear', {
+   	bubbles: true
+   });
+   console.warn('Create event', headerFilterClearEvent);
+   
+   this.element.dispatchEvent(headerFilterClearEvent);*/
 		}
 	};
 
@@ -11017,6 +11024,17 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 						cancel();
 						break;
 				}
+			});
+
+			window.addEventListener("tabulator-headerFilters-clear", function (event) {// (1)
+				/*console.warn('GOT EVENT: ', input.value, cellValue);
+    // alert("Hello from " + event.target.tagName); // Hello from H1
+    		var cellEl = cell.getElement();
+    		if (cellEl) {
+    	if (cellEl.classList.contains('tabulator-header-filter')) {
+    		input.value = nullce
+    	}
+    }*/
 			});
 
 			return input;

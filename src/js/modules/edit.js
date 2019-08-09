@@ -291,7 +291,7 @@ Edit.prototype.edit = function(cell, e, forceEdit){
 Edit.prototype.editors = {
 
 	//input element
-	input:function(cell, onRendered, success, cancel, editorParams){
+	input:function(cell, onRendered, success, cancel, editorParams) {
 
 		//create and style input
 		var cellValue = cell.getValue(),
@@ -333,6 +333,19 @@ Edit.prototype.editors = {
 				cancel();
 				break;
 			}
+		});
+
+		window.addEventListener("tabulator-headerFilters-clear", function(event) { // (1)
+			/*console.warn('GOT EVENT: ', input.value, cellValue);
+			// alert("Hello from " + event.target.tagName); // Hello from H1
+
+			var cellEl = cell.getElement();
+
+			if (cellEl) {
+				if (cellEl.classList.contains('tabulator-header-filter')) {
+					input.value = nullce
+				}
+			}*/
 		});
 
 		return input;

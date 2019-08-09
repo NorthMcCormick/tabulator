@@ -340,6 +340,17 @@ Edit.prototype.editors = {
 			}
 		});
 
+		window.addEventListener("tabulator-headerFilters-clear", function (event) {// (1)
+			/*console.warn('GOT EVENT: ', input.value, cellValue);
+   // alert("Hello from " + event.target.tagName); // Hello from H1
+   	var cellEl = cell.getElement();
+   	if (cellEl) {
+   	if (cellEl.classList.contains('tabulator-header-filter')) {
+   		input.value = nullce
+   	}
+   }*/
+		});
+
 		return input;
 	},
 
