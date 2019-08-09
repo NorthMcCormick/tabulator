@@ -6488,6 +6488,12 @@ Tabulator.prototype.clearFilter = function (all) {
 	if (this.modExists("filter", true)) {
 		this.modules.filter.clearFilter(all);
 		this.rowManager.filterRefresh();
+
+		var headerFilterClearEvent = new Event('tabulator-headerFilters-clear', {
+			bubbles: true
+		});
+
+		this.element.dispatchEvent(headerFilterClearEvent);
 	}
 };
 
@@ -6496,13 +6502,6 @@ Tabulator.prototype.clearHeaderFilter = function () {
 	if (this.modExists("filter", true)) {
 		this.modules.filter.clearHeaderFilter();
 		this.rowManager.filterRefresh();
-
-		/*var headerFilterClearEvent = new Event('tabulator-headerFilters-clear', {
-  	bubbles: true
-  });
-  console.warn('Create event', headerFilterClearEvent);
-  
-  this.element.dispatchEvent(headerFilterClearEvent);*/
 	}
 };
 

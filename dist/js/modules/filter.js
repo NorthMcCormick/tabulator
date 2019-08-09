@@ -21,6 +21,13 @@ Filter.prototype.initializeColumn = function (column, value) {
 	    prevSuccess,
 	    params;
 
+	/**
+  * When we clear the filter we need to reset this value so we are able to re-search for the same text
+  */
+	window.addEventListener("tabulator-headerFilters-clear", function () {
+		prevSuccess = undefined;
+	});
+
 	//handle successfull value change
 	function success(value) {
 		var filterType = column.modules.filter.tagType == "input" && column.modules.filter.attrType == "text" || column.modules.filter.tagType == "textarea" ? "partial" : "match",

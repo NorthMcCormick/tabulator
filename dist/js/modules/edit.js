@@ -163,7 +163,6 @@ Edit.prototype.edit = function (cell, e, forceEdit) {
 
 	//handle successfull value change
 	function success(value) {
-
 		if (self.currentCell === cell) {
 			var valid = true;
 
@@ -174,6 +173,18 @@ Edit.prototype.edit = function (cell, e, forceEdit) {
 			if (valid === true) {
 				self.clearEditor();
 				cell.setValue(value, true);
+
+				// If we have a dual value cell and they are now the same value push an event to manually update the values
+				if (cell.column && cell.column.definition && cell.column.definition.remoteField && cell.column.definition.remoteField !== '') {
+					var dualValueCellUpdateEvent = new CustomEvent('tabulator-dualValueCell-update', {
+						bubbles: true,
+						detail: {
+							cell: cell
+						}
+					});
+
+					cell.getElement().dispatchEvent(dualValueCellUpdateEvent);
+				}
 
 				if (self.table.options.dataTree && self.table.modExists("dataTree")) {
 					self.table.modules.dataTree.checkForRestyle(cell);
@@ -338,17 +349,6 @@ Edit.prototype.editors = {
 					cancel();
 					break;
 			}
-		});
-
-		window.addEventListener("tabulator-headerFilters-clear", function (event) {// (1)
-			/*console.warn('GOT EVENT: ', input.value, cellValue);
-   // alert("Hello from " + event.target.tagName); // Hello from H1
-   	var cellEl = cell.getElement();
-   	if (cellEl) {
-   	if (cellEl.classList.contains('tabulator-header-filter')) {
-   		input.value = nullce
-   	}
-   }*/
 		});
 
 		return input;
@@ -1234,12 +1234,17 @@ Edit.prototype.editors = {
 		function chooseItem() {
 			hideList();
 
-			if (initialValue !== currentItem.value) {
-				initialValue = currentItem.value;
-				success(currentItem.value);
-			} else {
-				cancel();
-			}
+			console.log("Choose item");
+			console.log('a', initialValue);
+			console.log('b', currentItem.value);
+
+			// TODO: make a param maybe
+			// if(initialValue !== currentItem.value){
+			initialValue = currentItem.value;
+			success(currentItem.value);
+			// }else{
+			// 	cancel();
+			// }
 		}
 
 		function cancelItem() {

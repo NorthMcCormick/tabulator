@@ -6498,6 +6498,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		if (this.modExists("filter", true)) {
 			this.modules.filter.clearFilter(all);
 			this.rowManager.filterRefresh();
+
+			var headerFilterClearEvent = new Event('tabulator-headerFilters-clear', {
+				bubbles: true
+			});
+
+			this.element.dispatchEvent(headerFilterClearEvent);
 		}
 	};
 
@@ -6506,13 +6512,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		if (this.modExists("filter", true)) {
 			this.modules.filter.clearHeaderFilter();
 			this.rowManager.filterRefresh();
-
-			/*var headerFilterClearEvent = new Event('tabulator-headerFilters-clear', {
-   	bubbles: true
-   });
-   console.warn('Create event', headerFilterClearEvent);
-   
-   this.element.dispatchEvent(headerFilterClearEvent);*/
 		}
 	};
 
@@ -10849,7 +10848,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 		//handle successfull value change
 		function success(value) {
-
 			if (self.currentCell === cell) {
 				var valid = true;
 
@@ -10860,6 +10858,18 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 				if (valid === true) {
 					self.clearEditor();
 					cell.setValue(value, true);
+
+					// If we have a dual value cell and they are now the same value push an event to manually update the values
+					if (cell.column && cell.column.definition && cell.column.definition.remoteField && cell.column.definition.remoteField !== '') {
+						var dualValueCellUpdateEvent = new CustomEvent('tabulator-dualValueCell-update', {
+							bubbles: true,
+							detail: {
+								cell: cell
+							}
+						});
+
+						cell.getElement().dispatchEvent(dualValueCellUpdateEvent);
+					}
 
 					if (self.table.options.dataTree && self.table.modExists("dataTree")) {
 						self.table.modules.dataTree.checkForRestyle(cell);
@@ -11024,17 +11034,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 						cancel();
 						break;
 				}
-			});
-
-			window.addEventListener("tabulator-headerFilters-clear", function (event) {// (1)
-				/*console.warn('GOT EVENT: ', input.value, cellValue);
-    // alert("Hello from " + event.target.tagName); // Hello from H1
-    		var cellEl = cell.getElement();
-    		if (cellEl) {
-    	if (cellEl.classList.contains('tabulator-header-filter')) {
-    		input.value = nullce
-    	}
-    }*/
 			});
 
 			return input;
@@ -11920,12 +11919,17 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 			function chooseItem() {
 				hideList();
 
-				if (initialValue !== currentItem.value) {
-					initialValue = currentItem.value;
-					success(currentItem.value);
-				} else {
-					cancel();
-				}
+				console.log("Choose item");
+				console.log('a', initialValue);
+				console.log('b', currentItem.value);
+
+				// TODO: make a param maybe
+				// if(initialValue !== currentItem.value){
+				initialValue = currentItem.value;
+				success(currentItem.value);
+				// }else{
+				// 	cancel();
+				// }
 			}
 
 			function cancelItem() {
@@ -12783,6 +12787,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		    field = column.getField(),
 		    prevSuccess,
 		    params;
+
+		/**
+   * When we clear the filter we need to reset this value so we are able to re-search for the same text
+   */
+		window.addEventListener("tabulator-headerFilters-clear", function () {
+			prevSuccess = undefined;
+		});
 
 		//handle successfull value change
 		function success(value) {

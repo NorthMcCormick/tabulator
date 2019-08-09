@@ -17,6 +17,12 @@ Filter.prototype.initializeColumn = function(column, value){
 	field = column.getField(),
 	prevSuccess, params;
 
+	/**
+	 * When we clear the filter we need to reset this value so we are able to re-search for the same text
+	 */
+	window.addEventListener("tabulator-headerFilters-clear", function() {
+		prevSuccess = undefined;
+	});
 
 	//handle successfull value change
 	function success(value){
